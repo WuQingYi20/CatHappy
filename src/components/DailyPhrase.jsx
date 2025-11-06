@@ -26,10 +26,39 @@ const DailyPhrase = () => {
   // 简单的语音合成（如果浏览器支持）
   const speakJapanese = () => {
     if ('speechSynthesis' in window && phrase) {
-      const utterance = new SpeechSynthesisUtterance(phrase.japanese);
-      utterance.lang = 'ja-JP';
-      utterance.rate = 0.8;
-      window.speechSynthesis.speak(utterance);
+      // 确保语音列表已加载
+      const speak = () => {
+        const utterance = new SpeechSynthesisUtterance(phrase.japanese);
+
+        // 获取可用的语音
+        const voices = window.speechSynthesis.getVoices();
+
+        // 优先选择日语语音
+        const japaneseVoice = voices.find(voice =>
+          voice.lang === 'ja-JP' ||
+          voice.lang.startsWith('ja')
+        );
+
+        if (japaneseVoice) {
+          utterance.voice = japaneseVoice;
+        }
+
+        utterance.lang = 'ja-JP';
+        utterance.rate = 0.8;
+        utterance.pitch = 1.0;
+
+        window.speechSynthesis.speak(utterance);
+      };
+
+      // 如果语音列表未加载，等待加载完成
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          speak();
+        };
+      } else {
+        speak();
+      }
     }
   };
 

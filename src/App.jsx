@@ -240,6 +240,8 @@ function App() {
               mode={mode}
               onInteract={handleCatInteract}
               isCompleted={isCompleted}
+              todayPomodoros={getTodayStats().pomodoros}
+              streak={getTotalStats().streak}
             />
           </div>
 
