@@ -9,6 +9,7 @@ import Stats from './components/Stats';
 import DailyPhrase from './components/DailyPhrase';
 import BreakCard from './components/BreakCard';
 import Achievement from './components/Achievement';
+import Confetti from './components/Confetti';
 import { useTimer } from './hooks/useTimer';
 import { useStats } from './hooks/useStats';
 import { useSound } from './hooks/useSound';
@@ -50,6 +51,8 @@ function App() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentAchievement, setCurrentAchievement] = useState(null);
+  const [confettiActive, setConfettiActive] = useState(false);
+  const [confettiIntensity, setConfettiIntensity] = useState('normal');
 
   // 欢迎动画
   useEffect(() => {
@@ -77,6 +80,20 @@ function App() {
       // 更新统计
       const newStats = completePomodoro(duration / 60);
       const milestone = checkMilestone();
+
+      // 🎉 触发五彩纸屑庆祝！
+      const pomodoros = newStats.today.pomodoros;
+      let intensity = 'normal';
+
+      // 根据番茄钟数量决定庆祝强度
+      if (pomodoros >= 10) {
+        intensity = 'mega'; // 超级庆祝！
+      } else if (milestone || pomodoros % 5 === 0) {
+        intensity = 'milestone'; // 里程碑庆祝
+      }
+
+      setConfettiIntensity(intensity);
+      setConfettiActive(true);
 
       // 检查成就解锁
       const achievements = checkAchievement(
@@ -221,6 +238,13 @@ function App() {
         <Achievement
           achievement={currentAchievement}
           onClose={handleCloseAchievement}
+        />
+
+        {/* 五彩纸屑庆祝 */}
+        <Confetti
+          isActive={confettiActive}
+          intensity={confettiIntensity}
+          onComplete={() => setConfettiActive(false)}
         />
 
         {/* 主界面 */}
