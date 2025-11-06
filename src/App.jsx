@@ -10,6 +10,8 @@ import DailyPhrase from './components/DailyPhrase';
 import BreakCard from './components/BreakCard';
 import Achievement from './components/Achievement';
 import Confetti from './components/Confetti';
+import GiftBox from './components/GiftBox';
+import ProgressTracker from './components/ProgressTracker';
 import { useTimer } from './hooks/useTimer';
 import { useStats } from './hooks/useStats';
 import { useSound } from './hooks/useSound';
@@ -20,6 +22,7 @@ import {
   getCatReaction
 } from './utils/messages';
 import { checkAchievement } from './utils/japanesePhrases';
+import { checkMilestoneReached } from './utils/milestones';
 
 function App() {
   const {
@@ -53,6 +56,7 @@ function App() {
   const [currentAchievement, setCurrentAchievement] = useState(null);
   const [confettiActive, setConfettiActive] = useState(false);
   const [confettiIntensity, setConfettiIntensity] = useState('normal');
+  const [currentMilestone, setCurrentMilestone] = useState(null); // 新增：里程碑礼物盒
 
   // 欢迎动画
   useEffect(() => {
@@ -81,28 +85,40 @@ function App() {
       const newStats = completePomodoro(duration / 60);
       const milestone = checkMilestone();
 
-      // 🎉 触发五彩纸屑庆祝！
+      // 🎁 检查是否达到里程碑（新系统）
       const pomodoros = newStats.today.pomodoros;
+      const milestoneReached = checkMilestoneReached(pomodoros);
+
+      // 🎉 触发五彩纸屑庆祝！
       let intensity = 'normal';
 
       // 根据番茄钟数量决定庆祝强度
-      if (pomodoros >= 10) {
-        intensity = 'mega'; // 超级庆祝！
+      if (milestoneReached) {
+        intensity = milestoneReached.celebrationLevel || 'milestone';
+      } else if (pomodoros >= 10) {
+        intensity = 'mega';
       } else if (milestone || pomodoros % 5 === 0) {
-        intensity = 'milestone'; // 里程碑庆祝
+        intensity = 'milestone';
       }
 
       setConfettiIntensity(intensity);
       setConfettiActive(true);
 
-      // 检查成就解锁
+      // 如果达到里程碑，3秒后显示礼物盒
+      if (milestoneReached) {
+        setTimeout(() => {
+          setCurrentMilestone(milestoneReached);
+        }, 3000);
+      }
+
+      // 检查成就解锁（旧系统，可以共存）
       const achievements = checkAchievement(
         newStats.today.pomodoros,
         newStats.streak
       );
 
-      if (achievements.length > 0) {
-        // 显示成就
+      if (achievements.length > 0 && !milestoneReached) {
+        // 只有在没有里程碑时才显示旧成就
         setTimeout(() => {
           setCurrentAchievement(achievements[0]);
         }, 2000);
@@ -179,6 +195,11 @@ function App() {
     setCurrentAchievement(null);
   };
 
+  // 关闭里程碑礼物盒
+  const handleCloseMilestone = () => {
+    setCurrentMilestone(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-warm-bg via-warm-light to-warm-bg py-6 md:py-10 px-4">
       {/* 背景装饰 */}
@@ -245,6 +266,12 @@ function App() {
           isActive={confettiActive}
           intensity={confettiIntensity}
           onComplete={() => setConfettiActive(false)}
+        />
+
+        {/* 里程碑礼物盒 */}
+        <GiftBox
+          milestone={currentMilestone}
+          onClose={handleCloseMilestone}
         />
 
         {/* 主界面 */}
@@ -324,6 +351,11 @@ function App() {
               todayStats={getTodayStats()}
               totalStats={getTotalStats()}
             />
+          </div>
+
+          {/* 里程碑进度追踪 */}
+          <div className="mb-8">
+            <ProgressTracker currentCount={getTodayStats().pomodoros} />
           </div>
 
           {/* 音效控制和提示 */}
