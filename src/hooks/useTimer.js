@@ -6,18 +6,34 @@ export const useTimer = (initialDuration = 1500) => {
   const [isRunning, setIsRunning] = useState(false);
   const [mode, setMode] = useState('work'); // 'work' | 'break'
   const intervalRef = useRef(null);
+  const startTimeRef = useRef(null); // 记录开始时间戳
+  const elapsedRef = useRef(0); // 记录已经过的时间
 
-  // 计时器逻辑
+  // 计时器逻辑 - 使用时间戳确保后台运行时准确
   useEffect(() => {
     if (isRunning && remaining > 0) {
+      // 记录开始时间
+      startTimeRef.current = Date.now();
+
       intervalRef.current = setInterval(() => {
+        // 计算实际经过的时间（毫秒）
+        const now = Date.now();
+        const actualElapsed = Math.floor((now - startTimeRef.current) / 1000);
+
+        // 重置开始时间用于下一次计算
+        startTimeRef.current = now;
+
         setRemaining((prev) => {
-          if (prev <= 1) {
+          const newRemaining = prev - actualElapsed;
+
+          if (newRemaining <= 0) {
             setIsRunning(false);
             return 0;
           }
-          return prev - 1;
+          return newRemaining;
         });
+
+        elapsedRef.current += actualElapsed;
       }, 1000);
     } else {
       if (intervalRef.current) {
@@ -34,6 +50,7 @@ export const useTimer = (initialDuration = 1500) => {
 
   // 开始计时
   const start = () => {
+    elapsedRef.current = 0; // 重置已过时间
     setIsRunning(true);
   };
 
@@ -46,6 +63,7 @@ export const useTimer = (initialDuration = 1500) => {
   const reset = () => {
     setIsRunning(false);
     setRemaining(duration);
+    elapsedRef.current = 0;
   };
 
   // 设置新的时长
