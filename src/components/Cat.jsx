@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { getDecorationsByPosition } from '../utils/catDecorations';
 
-const Cat = ({ mode, onInteract, isCompleted, todayPomodoros = 0, streak = 0 }) => {
+const Cat = ({ mode, onInteract, isCompleted, todayPomodoros = 0, streak = 0, totalPomodoros = 0 }) => {
+  // 获取已解锁的装饰品
+  const decorations = getDecorationsByPosition(totalPomodoros);
   const [animation, setAnimation] = useState('idle');
   const [mood, setMood] = useState('normal');
   const [randomAction, setRandomAction] = useState(null);
@@ -327,6 +330,209 @@ const Cat = ({ mode, onInteract, isCompleted, todayPomodoros = 0, streak = 0 }) 
           transition={{ type: "spring", stiffness: 200 }}
         >
           🔥 {streak}日连续
+        </motion.div>
+      )}
+
+      {/* ========== 持久化装饰品系统 ========== */}
+
+      {/* 背景装饰 */}
+      {decorations.background.map((deco, index) => (
+        <motion.div
+          key={deco.id}
+          className="absolute inset-0 -z-10 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.3 }}
+          transition={{ duration: 1 }}
+        >
+          {deco.id === 'sakura' && (
+            <>
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute text-3xl"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`
+                  }}
+                  animate={{
+                    y: [0, 10, 0],
+                    rotate: [0, 10, -10, 0],
+                    opacity: [0.3, 0.6, 0.3]
+                  }}
+                  transition={{
+                    duration: 3 + Math.random() * 2,
+                    repeat: Infinity,
+                    delay: Math.random() * 2
+                  }}
+                >
+                  🌸
+                </motion.div>
+              ))}
+            </>
+          )}
+        </motion.div>
+      ))}
+
+      {/* 光环装饰（周围） */}
+      {decorations.aura.map((deco, index) => (
+        <motion.div
+          key={deco.id}
+          className="absolute inset-0 pointer-events-none"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 200 }}
+        >
+          {deco.id === 'stars' && (
+            <>
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute text-2xl"
+                  style={{
+                    left: `${50 + Math.cos((i / 6) * Math.PI * 2) * 45}%`,
+                    top: `${50 + Math.sin((i / 6) * Math.PI * 2) * 45}%`
+                  }}
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    rotate: [0, 180, 360],
+                    opacity: [0.6, 1, 0.6]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.3
+                  }}
+                >
+                  ✨
+                </motion.div>
+              ))}
+            </>
+          )}
+        </motion.div>
+      ))}
+
+      {/* 头部装饰（蝴蝶结/王冠） */}
+      {decorations.head.map((deco, index) => (
+        <motion.div
+          key={deco.id}
+          className="absolute top-0 left-1/2 -translate-x-1/2 text-4xl"
+          initial={{ scale: 0, y: -20, rotate: -45 }}
+          animate={{ scale: 1, y: 0, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 15 }}
+        >
+          <motion.div
+            animate={{
+              y: [0, -3, 0],
+              rotate: [-2, 2, -2]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            {deco.emoji}
+          </motion.div>
+          {/* 提示文字 */}
+          <motion.div
+            className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs bg-black/70 text-white px-2 py-1 rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity"
+            initial={{ opacity: 0 }}
+          >
+            {deco.nameJp}
+          </motion.div>
+        </motion.div>
+      ))}
+
+      {/* 肩膀装饰（小鸟） */}
+      {decorations.shoulder.map((deco, index) => (
+        <motion.div
+          key={deco.id}
+          className="absolute top-[20%] right-[10%] text-3xl"
+          initial={{ scale: 0, x: 50, opacity: 0 }}
+          animate={{ scale: 1, x: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200 }}
+        >
+          <motion.div
+            animate={{
+              y: [0, -5, 0],
+              rotate: [-5, 5, -5]
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            {deco.emoji}
+          </motion.div>
+        </motion.div>
+      ))}
+
+      {/* 旁边装饰（小鱼干、书本等） */}
+      <div className="absolute left-[-60px] top-1/2 -translate-y-1/2 flex flex-col gap-2">
+        {decorations.beside.map((deco, index) => (
+          <motion.div
+            key={deco.id}
+            className="text-3xl"
+            initial={{ scale: 0, x: -30, opacity: 0 }}
+            animate={{ scale: 1, x: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, delay: index * 0.2 }}
+          >
+            <motion.div
+              animate={{
+                rotate: [-10, 10, -10],
+                y: [0, -3, 0]
+              }}
+              transition={{
+                duration: 2 + index * 0.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="relative group cursor-help"
+            >
+              {deco.emoji}
+              {/* 提示文字 */}
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 text-xs bg-black/70 text-white px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                {deco.nameJp}
+              </div>
+            </motion.div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* 尾巴装饰 */}
+      {decorations.tail.map((deco, index) => (
+        <motion.div
+          key={deco.id}
+          className="absolute bottom-[20%] right-[-40px] text-3xl"
+          initial={{ scale: 0, rotate: -90, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200 }}
+        >
+          <motion.div
+            animate={{
+              rotate: [0, 15, 0],
+              scale: [1, 1.1, 1]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            {deco.emoji}
+          </motion.div>
+        </motion.div>
+      ))}
+
+      {/* 装饰品数量提示 */}
+      {totalPomodoros >= 3 && (
+        <motion.div
+          className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+        >
+          {Object.values(decorations).flat().length}个装饰品已解锁
         </motion.div>
       )}
     </div>

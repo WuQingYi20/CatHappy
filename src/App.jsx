@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Palette } from 'lucide-react';
 import Cat from './components/Cat';
 import Timer from './components/Timer';
 import Controls from './components/Controls';
@@ -12,6 +12,7 @@ import Achievement from './components/Achievement';
 import Confetti from './components/Confetti';
 import GiftBox from './components/GiftBox';
 import ProgressTracker from './components/ProgressTracker';
+import DecorationGallery from './components/DecorationGallery';
 import { useTimer } from './hooks/useTimer';
 import { useStats } from './hooks/useStats';
 import { useSound } from './hooks/useSound';
@@ -57,6 +58,7 @@ function App() {
   const [confettiActive, setConfettiActive] = useState(false);
   const [confettiIntensity, setConfettiIntensity] = useState('normal');
   const [currentMilestone, setCurrentMilestone] = useState(null); // 新增：里程碑礼物盒
+  const [showDecorationGallery, setShowDecorationGallery] = useState(false); // 装饰品图鉴
 
   // 欢迎动画
   useEffect(() => {
@@ -274,6 +276,13 @@ function App() {
           onClose={handleCloseMilestone}
         />
 
+        {/* 装饰品图鉴 */}
+        <DecorationGallery
+          totalPomodoros={getTotalStats().totalPomodoros}
+          isOpen={showDecorationGallery}
+          onClose={() => setShowDecorationGallery(false)}
+        />
+
         {/* 主界面 */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -315,6 +324,7 @@ function App() {
               onInteract={handleCatInteract}
               isCompleted={isCompleted}
               todayPomodoros={getTodayStats().pomodoros}
+              totalPomodoros={getTotalStats().totalPomodoros}
               streak={getTotalStats().streak}
             />
           </div>
@@ -365,8 +375,8 @@ function App() {
             transition={{ delay: 0.8 }}
             className="space-y-6"
           >
-            {/* 音效控制 */}
-            <div className="flex justify-center">
+            {/* 音效控制和装饰品图鉴 */}
+            <div className="flex justify-center gap-3">
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
@@ -377,6 +387,32 @@ function App() {
                 <span className="text-sm font-medium">
                   {isMuted ? '音効オフ' : '音効オン'}
                 </span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowDecorationGallery(true)}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-cat-orange to-happy-yellow text-white rounded-xl shadow-md hover:shadow-glow transition-all font-medium"
+              >
+                <Palette size={20} />
+                <span className="text-sm font-medium">
+                  装饰品图鉴
+                </span>
+                {getTotalStats().totalPomodoros >= 3 && (
+                  <motion.span
+                    className="bg-white/30 px-2 py-0.5 rounded-full text-xs"
+                    animate={{
+                      scale: [1, 1.1, 1],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                    }}
+                  >
+                    NEW
+                  </motion.span>
+                )}
               </motion.button>
             </div>
 
@@ -400,6 +436,10 @@ function App() {
                   <p className="flex items-center gap-1.5">
                     <span className="text-purple-500">✨</span>
                     <span>每3个番茄钟有惊喜</span>
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <span className="text-purple-500">🎨</span>
+                    <span>完成番茄钟永久解锁猫咪装饰</span>
                   </p>
                 </div>
               </div>
